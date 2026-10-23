@@ -188,6 +188,7 @@ function initMap() {
       layer.on({
         mouseover: () => layer.setStyle({ weight: 2.5 }),
         mouseout: () => layer.setStyle({ weight: 1 }),
+        click: (e) => layer.openTooltip(e.latlng), // untuk layar sentuh (tanpa hover)
       });
     },
   }).addTo(map);
@@ -216,20 +217,17 @@ function populatePeriode() {
   sp.onchange = () => { S.periode = sp.value; render(); };
 }
 
-function renderKPI(prov, rek) {
+function renderKPI(prov) {
   const nas = prov["Indonesia"];
   const list = Object.entries(prov).filter(([p]) => !REGIONAL.has(p));
   const nS = list.filter(([, d]) => d.neraca > 0).length;
   const nD = list.filter(([, d]) => d.neraca < 0).length;
-  const terpasok = rek.filter((r) => r.dari).reduce((a, r) => a + r.volume, 0);
-  const totalDef = list.filter(([, d]) => d.neraca < 0).reduce((a, [, d]) => a - d.neraca, 0);
   const cls = nas && nas.neraca >= 0 ? "pos" : "neg";
   document.getElementById("kpis").innerHTML = `
     <div class="kpi"><div class="label">Kebutuhan nasional</div><div class="value">${fmt(nas?.kebutuhan)}</div><div class="hint">${SATUAN}</div></div>
     <div class="kpi"><div class="label">Produksi nasional</div><div class="value">${fmt(nas?.produksi)}</div><div class="hint">${SATUAN}</div></div>
     <div class="kpi"><div class="label">Neraca nasional</div><div class="value ${cls}">${nas ? fmtSigned(nas.neraca) : "–"}</div><div class="hint">${nas && nas.neraca >= 0 ? "surplus" : "defisit"}</div></div>
-    <div class="kpi"><div class="label">Provinsi surplus / defisit</div><div class="value"><span class="pos" style="color:var(--surplus)">${nS}</span> / <span style="color:var(--defisit)">${nD}</span></div><div class="hint">dari ${list.length} provinsi</div></div>
-    <div class="kpi"><div class="label">Defisit tertutup antar-provinsi</div><div class="value">${totalDef ? Math.round((terpasok / totalDef) * 100) : 100}%</div><div class="hint">${fmt(terpasok)} dari ${fmt(totalDef)} ${SATUAN}</div></div>`;
+    <div class="kpi"><div class="label">Provinsi surplus / defisit</div><div class="value"><span class="pos" style="color:var(--surplus)">${nS}</span> / <span style="color:var(--defisit)">${nD}</span></div><div class="hint">dari ${list.length} provinsi</div></div>`;
 }
 
 function renderMap(prov, rek) {
@@ -244,12 +242,14 @@ function renderMap(prov, rek) {
     const d = prov[p];
     const warna = !d ? cN : d.neraca >= 0 ? cS : cD;
     layer.setStyle({ fillColor: warna, fillOpacity: 0.8, color: "#ffffff", weight: 1, opacity: 0.9 });
-    if (!d) { layer.bindPopup(`<b>${esc(p)}</b><br>Tidak ada data.`); return; }
+    // Info muncul saat kursor diarahkan (hover), tanpa perlu klik.
+    const opsi = { sticky: true, direction: "top", offset: [0, -8] };
+    if (!d) { layer.bindTooltip(`<b>${esc(p)}</b><br>Tidak ada data.`, opsi); return; }
     const pct = d.kebutuhan ? (d.neraca / d.kebutuhan) * 100 : null;
-    layer.bindPopup(`<b>${esc(p)}</b> — ${d.neraca >= 0 ? "Surplus" : "Defisit"}<br>
+    layer.bindTooltip(`<b>${esc(p)}</b> — ${d.neraca >= 0 ? "Surplus" : "Defisit"}<br>
       Kebutuhan: ${fmt(d.kebutuhan)} ${SATUAN}<br>
       Produksi: ${fmt(d.produksi)} ${SATUAN}<br>
-      Neraca: <b style="color:${d.neraca >= 0 ? cS : cD}">${fmtSigned(d.neraca)} ${SATUAN}</b>${pct != null ? ` (${pct.toFixed(0)}%)` : ""}`);
+      Neraca: <b style="color:${d.neraca >= 0 ? cS : cD}">${fmtSigned(d.neraca)} ${SATUAN}</b>${pct != null ? ` (${pct.toFixed(0)}%)` : ""}`, opsi);
   });
 
   if (document.getElementById("chk-flows").checked) {
@@ -302,7 +302,7 @@ function fokusProvinsi(p) {
   const layer = polyByProv[p];
   if (!layer) return;
   map.fitBounds(layer.getBounds(), { maxZoom: 8, padding: [20, 20] });
-  layer.openPopup(layer.getBounds().getCenter());
+  layer.openTooltip(layer.getBounds().getCenter());
   document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
@@ -375,7 +375,7 @@ function renderPelaku(rek) {
 function render() {
   const prov = currentProv();
   const rek = rekomendasi(prov);
-  renderKPI(prov, rek);
+  renderKPI(prov);
   renderMap(prov, rek);
   renderTop10(prov);
   renderRekomendasi(rek);
