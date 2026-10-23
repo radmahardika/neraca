@@ -170,7 +170,10 @@ function rekomendasi(provData) {
 }
 
 // ---------- UI ----------
-const S = { data: null, komoditas: KOMODITAS[0], periode: "Tahunan", rank: "volume", sort: { key: "neraca", dir: 1 } };
+// Default: bulan berjalan. `pilihan` = periode yang dipilih pengguna; `periode` = yang benar-benar ditampilkan
+// (jatuh ke Tahunan bila komoditas tidak punya data bulanan, mis. Daging Sapi).
+const BULAN_INI = BULAN[new Date().getMonth()];
+const S = { data: null, komoditas: KOMODITAS[0], pilihan: BULAN_INI, periode: BULAN_INI, rank: "volume", sort: { key: "neraca", dir: 1 } };
 let map, layerProvinsi, layerFlows;
 const polyByProv = {};
 
@@ -211,10 +214,10 @@ function populatePeriode() {
   const sp = document.getElementById("sel-periode");
   const tersedia = Object.keys(S.data.komoditas[S.komoditas]);
   const urut = ["Tahunan", ...BULAN].filter((p) => tersedia.includes(p));
-  if (!urut.includes(S.periode)) S.periode = urut[0];
-  sp.innerHTML = urut.map((p) => `<option>${esc(p)}</option>`).join("");
+  S.periode = urut.includes(S.pilihan) ? S.pilihan : urut.includes("Tahunan") ? "Tahunan" : urut[0];
+  sp.innerHTML = urut.map((p) => `<option value="${esc(p)}">${esc(p)}${p === BULAN_INI ? " (bulan ini)" : ""}</option>`).join("");
   sp.value = S.periode;
-  sp.onchange = () => { S.periode = sp.value; render(); };
+  sp.onchange = () => { S.pilihan = S.periode = sp.value; render(); };
 }
 
 function renderKPI(prov) {
