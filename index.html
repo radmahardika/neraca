@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Neraca Bapok Nasional</title>
+  <meta name="description" content="Neraca komoditas bahan pokok per provinsi: wilayah surplus, defisit, dan rekomendasi distribusi antar wilayah.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <h1>Neraca Bapok Nasional</h1>
+      <p class="sub">Surplus &amp; defisit bahan pokok per provinsi</p>
+    </div>
+    <div class="controls">
+      <label>Komoditas
+        <select id="sel-komoditas"></select>
+      </label>
+      <label>Periode
+        <select id="sel-periode"></select>
+      </label>
+    </div>
+  </header>
+
+  <main>
+    <section class="kpis" id="kpis"></section>
+
+    <section class="map-wrap">
+      <div id="map"></div>
+      <div class="legend">
+        <span><i class="dot surplus"></i>Surplus</span>
+        <span><i class="dot defisit"></i>Defisit</span>
+        <span><i class="dot nodata"></i>Tidak ada data</span>
+        <span><i class="line"></i>Rekomendasi pasokan</span>
+        <label class="toggle"><input type="checkbox" id="chk-flows" checked> Tampilkan alur</label>
+      </div>
+    </section>
+
+    <section class="top10">
+      <div class="top10-head">
+        <h2>Top 10 Prioritas</h2>
+        <div class="seg" id="seg-rank">
+          <button data-rank="volume" class="active">Volume</button>
+          <button data-rank="persen">% kebutuhan</button>
+        </div>
+      </div>
+      <div class="top10-grid">
+        <div class="card">
+          <h3 class="t-defisit">Defisit terbesar <span>prioritas pasokan</span></h3>
+          <ol class="rank" id="top-defisit"></ol>
+        </div>
+        <div class="card">
+          <h3 class="t-surplus">Surplus terbesar <span>sumber pasokan</span></h3>
+          <ol class="rank" id="top-surplus"></ol>
+        </div>
+      </div>
+    </section>
+
+    <nav class="tabs" id="tabs">
+      <button data-tab="rekomendasi" class="active">Rekomendasi Distribusi</button>
+      <button data-tab="provinsi">Neraca Provinsi</button>
+      <button data-tab="harga">Harga</button>
+      <button data-tab="pelaku">Pelaku Usaha</button>
+    </nav>
+
+    <section class="panel" id="panel-rekomendasi"></section>
+    <section class="panel hidden" id="panel-provinsi"></section>
+    <section class="panel hidden" id="panel-harga"></section>
+    <section class="panel hidden" id="panel-pelaku"></section>
+  </main>
+
+  <footer>
+    <span id="source-badge">Memuat data…</span>
+    <span>Jarak = garis lurus antar ibu kota provinsi (perkiraan, bukan rute logistik).</span>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="data/provinsi.js"></script>
+  <script src="data/snapshot.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
