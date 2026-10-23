@@ -41,7 +41,13 @@ const num = (s) => {
   const v = Number(t);
   return isNaN(v) ? null : v;
 };
-const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+// Harga bisa ditulis "45000", "45,000", "45.000", atau "Rp 45.000".
+const parseHarga = (s) => {
+  const t = String(s ?? "").replace(/rp\.?/i, "").replace(/\s/g, "");
+  if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(t)) return Number(t.replace(/\./g, "").replace(",", "."));
+  return num(t);
+};
+const esc =(s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 function parseCSV(text) {
   const rows = [];
@@ -349,7 +355,14 @@ function renderHarga(prov) {
     el.innerHTML = templateHint(SHEET_HARGA, ["provinsi", "komoditas", "harga", "tanggal"], ["Jawa Timur", "Cabai Rawit", "45000", "2026-10-20"]);
     return;
   }
-  const harga = rows.map((r) => ({ ...r, h: num(r.harga) })).filter((r) => r.h != null);
+  // Satu harga per provinsi: baris paling bawah di sheet dianggap yang terbaru.
+  const terbaru = {};
+  for (const r of rows) {
+    const h = parseHarga(r.harga);
+    if (h != null) terbaru[r.provinsi] = { ...r, h };
+  }
+  const harga = Object.values(terbaru);
+  if (!harga.length) { el.innerHTML = `<p class="empty">Kolom harga untuk ${esc(S.komoditas)} belum berisi angka.</p>`; return; }
   const rata = harga.reduce((a, r) => a + r.h, 0) / harga.length;
   harga.sort((a, b) => b.h - a.h);
   el.innerHTML = `<p class="note">Rata-rata nasional: <b>Rp${fmt(rata)}</b>. Provinsi defisit dengan harga di atas rata-rata adalah peluang dagang bagi provinsi surplus.</p>

@@ -21,6 +21,10 @@ Sheet opsional (baris pertama = nama kolom):
 | `Harga` | provinsi, komoditas, harga, tanggal |
 | `Pelaku Usaha` | provinsi, komoditas, nama, jenis, kontak |
 
+- Nama provinsi dan komoditas harus sama persis dengan sheet neraca (mis. `DI Yogyakarta`, `Cabai Rawit`).
+- Harga boleh ditulis `45000`, `45.000`, atau `Rp 45.000`. Jika satu provinsi punya beberapa baris harga, baris paling bawah dianggap terbaru.
+- Format kolom `kontak` sebagai teks (Format → Angka → Teks biasa) supaya angka 0 di depan nomor telepon tidak hilang.
+
 ## Menjalankan
 
 Buka `index.html` di browser, atau aktifkan **GitHub Pages** (Settings → Pages → Branch `main`, folder `/`).
